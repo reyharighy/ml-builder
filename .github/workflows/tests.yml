@@ -63,6 +63,16 @@ jobs:
           sed -i 's/DB_DATABASE=.*/DB_DATABASE=laravel/' .env
           sed -i 's/DB_USERNAME=.*/DB_USERNAME=sail/' .env
           sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=password/' .env
+      
+      - name: Setup .env.testing for CI
+        run: |
+          cp .env .env.testing
+          sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env.testing
+          sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env.testing
+          sed -i 's/DB_PORT=.*/DB_PORT=3306/' .env.testing
+          sed -i 's/DB_DATABASE=.*/DB_DATABASE=laravel/' .env.testing
+          sed -i 's/DB_USERNAME=.*/DB_USERNAME=sail/' .env.testing
+          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=password/' .env.testing
 
       - name: Generate Application Key
         run: php artisan key:generate
@@ -77,4 +87,4 @@ jobs:
         run: php artisan migrate --force
 
       - name: Tests
-        run: php artisan test
+        run: ./vendor/bin/pest
