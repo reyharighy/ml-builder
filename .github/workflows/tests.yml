@@ -14,6 +14,22 @@ jobs:
   ci:
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: laravel
+          MYSQL_USER: sail
+          MYSQL_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,6 +55,14 @@ jobs:
 
       - name: Copy Environment File
         run: cp .env.example .env
+      
+      - name: Override DB host for GitHub CI
+        run: |
+          sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env
+          sed -i 's/DB_PORT=.*/DB_PORT=3306/' .env
+          sed -i 's/DB_DATABASE=.*/DB_DATABASE=laravel/' .env
+          sed -i 's/DB_USERNAME=.*/DB_USERNAME=sail/' .env
+          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=password/' .env
 
       - name: Generate Application Key
         run: php artisan key:generate
@@ -48,6 +72,9 @@ jobs:
 
       - name: Build Assets
         run: npm run build
+      
+      - name: Run Migrations
+        run: php artisan migrate --force
 
       - name: Tests
         run: ./vendor/bin/pest
